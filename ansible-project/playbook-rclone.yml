@@ -1,0 +1,6 @@
+---
+- name: Instalasi Rclone
+  hosts: rclone_install
+  become: true
+  roles:
+    - rclone_install

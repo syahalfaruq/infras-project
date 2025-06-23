@@ -1,0 +1,9 @@
+rclone_type: s3
+rclone_provider: Other
+rclone_access_key_id: 
+rclone_secret_access_key: 
+rclone_region: ap-southeast-3
+rclone_endpoint: https://tos-s3-ap-southeast-3.bytepluses.com
+rclone_force_path_style: false
+rclone_disable_http2: true
+rclone_list_version: 2

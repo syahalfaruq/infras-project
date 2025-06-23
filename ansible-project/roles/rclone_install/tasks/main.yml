@@ -1,0 +1,47 @@
+---
+- name: Salin file ZIP rclone ke target
+  copy:
+    src: rclone-current-linux-amd64.zip
+    dest: /tmp/rclone-current-linux-amd64.zip
+    mode: "0644"
+
+- name: Ekstrak rclone di target
+  unarchive:
+    src: /tmp/rclone-current-linux-amd64.zip
+    dest: /tmp/
+    remote_src: yes
+
+- name: Cari direktori hasil ekstrak rclone
+  shell: "find /tmp -maxdepth 1 -type d -name 'rclone-*' -print -quit"
+  register: rclone_dir
+
+- name: Set fakta direktori rclone
+  set_fact:
+    rclone_extract_dir: "{{ rclone_dir.stdout }}"
+
+- name: Pindahkan binary rclone ke /usr/bin/
+  copy:
+    src: "{{ rclone_extract_dir }}/rclone"
+    dest: /usr/bin/rclone
+    mode: "0755"
+    remote_src: yes
+
+- name: Tampilkan versi rclone
+  shell: rclone version
+  register: rclone_version
+
+- name: Print versi rclone
+  debug:
+    var: rclone_version.stdout
+
+- name: Buat direktori konfigurasi rclone
+  file:
+    path: /root/.config/rclone
+    state: directory
+    mode: "0700"
+
+- name: Salin konfigurasi rclone
+  template:
+    src: rclone.conf.j2
+    dest: /root/.config/rclone/rclone.conf
+    mode: "0600"
