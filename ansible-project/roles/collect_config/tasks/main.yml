@@ -1,0 +1,51 @@
+- name: Define config files to collect
+  set_fact:
+    config_files:
+      - { src: "/etc/passwd", dest_suffix: "passwd.conf.txt" }
+      - { src: "/etc/group", dest_suffix: "group.conf.txt" }
+      - { src: "/etc/sudoers", dest_suffix: "sudoers.conf.txt" }
+      - { src: "/etc/login.defs", dest_suffix: "logindefs.conf.txt" }
+      - { src: "/etc/security/pwquality.conf", dest_suffix: "pwquality.txt" }
+      - { src: "/etc/security/faillock.conf", dest_suffix: "faillock.txt" }
+      - { src: "/etc/ssh/sshd_config", dest_suffix: "sshd.conf.txt" }
+      - { src: "/etc/ntp.conf", dest_suffix: "ntp.conf.txt" }
+      - { src: "/etc/chrony.conf", dest_suffix: "chrony.conf.txt" }
+      - { src: "/etc/rsyslog.conf", dest_suffix: "rsyslog.conf.txt" }
+      - { src: "/etc/selinux/config", dest_suffix: "selinux.txt" }
+
+- name: Collect config files using slurp
+  slurp:
+    src: "{{ item.src }}"
+  register: slurped_files
+  loop: "{{ config_files }}"
+  ignore_errors: yes
+
+- name: Save collected config files to local controller
+  delegate_to: localhost
+  copy:
+    content: "{{ item.content | b64decode }}"
+    dest: "./config-backup/{{ inventory_hostname }}-{{ item.item.dest_suffix }}"
+  loop: "{{ slurped_files.results }}"
+  when: item is defined and item.content is defined
+
+# Handle pam.d/*-auth
+- name: Find all PAM *-auth files
+  find:
+    paths: /etc/pam.d
+    patterns: "*-auth"
+  register: pamd_files
+
+- name: Slurp PAM auth files
+  slurp:
+    src: "{{ item.path }}"
+  loop: "{{ pamd_files.files }}"
+  register: slurped_pamd
+  when: pamd_files.files | length > 0
+
+- name: Save PAM files to local controller
+  delegate_to: localhost
+  copy:
+    content: "{{ item.content | b64decode }}"
+    dest: "./config-backup/{{ inventory_hostname }}-{{ item.source | basename }}.conf.txt"
+  loop: "{{ slurped_pamd.results }}"
+  when: item is defined and item.content is defined
