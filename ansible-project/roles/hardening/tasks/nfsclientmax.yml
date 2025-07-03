@@ -1,0 +1,8 @@
+---
+- name: copy nfs-client max
+  template: 
+    src: "nfsmax.sh.j2" 
+    dest: "/tmp/nfsmax.sh" 
+    mode: a+x
+- name: run nfs client max
+  command: "bash /tmp/nfsmax.sh"

@@ -22,6 +22,7 @@
 
 - name: Save collected config files to local controller
   delegate_to: localhost
+  become: no
   copy:
     content: "{{ item.content | b64decode }}"
     dest: "./config-backup/{{ inventory_hostname }}-{{ item.item.dest_suffix }}"
@@ -44,6 +45,7 @@
 
 - name: Save PAM files to local controller
   delegate_to: localhost
+  become: no
   copy:
     content: "{{ item.content | b64decode }}"
     dest: "./config-backup/{{ inventory_hostname }}-{{ item.source | basename }}.conf.txt"

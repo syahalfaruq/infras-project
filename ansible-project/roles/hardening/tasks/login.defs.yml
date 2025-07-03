@@ -1,0 +1,44 @@
+---
+- name: show before update /etc/login.defs
+  command: 'cat /etc/login.defs'
+  register: result
+
+- debug: msg="{{ result.stdout_lines }}"  
+
+- name: Set Password Expiration Days
+  lineinfile:
+    dest: '/etc/login.defs'
+    regexp: "PASS_MAX_DAYS"
+    line: "PASS_MAX_DAYS 60"
+    state: present
+    backup: yes
+
+- name: Set Password Expiration Days
+  lineinfile:
+    dest: '/etc/login.defs'
+    regexp: "PASS_MIN_DAYS"
+    line: "PASS_MIN_DAYS 0"
+    state: present
+    backup: yes
+
+- name: Set Password Expiration Days
+  lineinfile:
+    dest: '/etc/login.defs'
+    regexp: "PASS_WARN_AGE"
+    line: "PASS_WARN_AGE 7"
+    state: present
+    backup: yes
+
+- name: Set Password Expiration Days
+  lineinfile:
+    dest: '/etc/login.defs'
+    regexp: "PASS_MIN_LEN"
+    line: "PASS_MIN_LEN 8"
+    state: present
+    backup: yes
+
+- name: show after update /etc/login.defs
+  command: "cat /etc/login.defs"
+  register: result
+
+- debug: msg="{{ result.stdout_lines }}"  

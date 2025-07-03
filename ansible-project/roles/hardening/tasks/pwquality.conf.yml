@@ -1,0 +1,36 @@
+---
+- name: show before update /etc/security/pwquality.conf
+  command: "cat /etc/security/pwquality.conf"
+  register: result
+
+- debug: msg="{{ result.stdout_lines }}"  
+
+- name: Set Password cant be same from old
+  lineinfile:
+    dest: '/etc/security/pwquality.conf'
+    regexp: "difok"
+    line: "difok = 8"
+    state: present
+    backup: yes
+
+- name: Set Minimum length password
+  lineinfile:
+    dest: '/etc/security/pwquality.conf'
+    regexp: "minlen"
+    line: "minlen = 8"
+    state: present
+    backup: yes
+
+- name: Set Prompt Password
+  lineinfile:
+    dest: '/etc/pam.d/passwd'
+    regexp: "^password[^.]*required"
+    line: "password    required    pam_pwquality.so retry=2"
+    state: present
+    backup: yes
+
+- name: show after update /etc/security/pwquality.conf
+  command: "cat /etc/security/pwquality.conf"
+  register: result
+
+- debug: msg="{{ result.stdout_lines }}"  

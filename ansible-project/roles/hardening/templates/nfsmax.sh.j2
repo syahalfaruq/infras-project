@@ -1,0 +1,7 @@
+#!/bin/bash 
+if (lsmod | grep sunrpc); then
+(modinfo sunrpc | grep tcp_max_slot_table_entries) && sysctl -w sunrpc.tcp_max_slot_table_entries=128
+(modinfo sunrpc | grep tcp_slot_table_entries) && sysctl -w sunrpc.tcp_slot_table_entries=128
+fi
+(modinfo sunrpc | grep tcp_max_slot_table_entries) && echo "options sunrpc tcp_max_slot_table_entries=128" >> /etc/modprobe.d/sunrpc.conf
+(modinfo sunrpc | grep tcp_slot_table_entries) && echo "options sunrpc tcp_slot_table_entries=128" >> /etc/modprobe.d/sunrpc.conf

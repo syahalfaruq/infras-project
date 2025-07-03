@@ -1,0 +1,6 @@
+---
+# - include: "login.defs.yml"
+# - include: "pwquality.conf.yml"
+- include_tasks: "sysctl.yml"
+# - include: "sshd_config.yml"
+# - include: "nfsclientmax.yml"

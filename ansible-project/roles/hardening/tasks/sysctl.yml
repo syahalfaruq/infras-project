@@ -1,0 +1,36 @@
+---
+- name: show before update /etc/sysctl.conf
+  command: "cat /etc/sysctl.conf"
+  register: result
+
+- debug: msg="{{ result.stdout_lines }}"  
+
+- name: Remove sysctl
+  sysctl:
+    name: "{{ item.name }}"
+    state: absent
+    reload: no
+    ignoreerrors: yes
+  with_items: "{{ remove_sysctl }}"
+
+- name: Recommended sysctl
+  become: true
+  ansible.posix.sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    state: present
+    reload: no
+    ignoreerrors: yes
+  with_items: "{{ hardening_sysctl }}"
+
+- name: show after update /etc/sysctl.conf
+  command: "cat /etc/sysctl.conf"
+  register: result
+
+- debug: msg="{{ result.stdout_lines }}"  
+
+- name: Reload Sysctl
+  command: /bin/true
+  notify:
+    - reload sysctl.conf
+    - flush routes

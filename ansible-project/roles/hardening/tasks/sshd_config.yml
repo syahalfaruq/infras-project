@@ -1,0 +1,223 @@
+---
+- name: show before update /etc/ssh/sshd_config
+  command: "cat /etc/ssh/sshd_config"
+  register: result
+
+- debug: msg="{{ result.stdout_lines }}"  
+
+- name: Set Permissions on /etc/ssh/sshd_config
+  file:
+    path: /etc/ssh/sshd_config
+    state: file
+    mode: 0600
+    owner: root
+    group: root
+
+- name: Clearing sshd config
+  command: >
+    sed -in '/{{ chipper_start }}/,/{{ chipper_end }}/d' /etc/ssh/sshd_config
+  notify: restart ssh
+
+- name: Set UseDNS=no
+  lineinfile: 
+    path: /etc/ssh/sshd_config 
+    regexp: '[^.]*UseDNS' 
+    line: 'UseDNS no'
+    backup: yes
+  
+- name: Set GSSAPIAuthentication=no
+  lineinfile: 
+    path: /etc/ssh/sshd_config 
+    regexp: '[^.]*GSSAPIAuthentication' 
+    line: 'GSSAPIAuthentication no'
+    backup: yes
+
+- name: Disable X11 Forwarding
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    state: present
+    regexp: '[^.]*X11Forwarding'
+    line: 'X11Forwarding no'
+    backup: yes
+
+- name: Set SSH MaxAuthTries to 6 or less
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    state: present
+    regexp: '[^.]*MaxAuthTries'
+    line: 'MaxAuthTries 6'
+    backup: yes
+
+- name: Disable SSH Root Login
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    state: present
+    regexp: '[^.]*PermitRootLogin'
+    line: 'PermitRootLogin no'
+    backup: yes
+
+- name: Disable SSH Root Login
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    state: present
+    regexp: '[^.]*PermitUserEnvironment'
+    line: 'PermitUserEnvironment no'
+    backup: yes
+
+- name: Delete Cipher
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    state: absent 
+    regexp: '(?i)[^.]*Ciphers'
+    backup: yes 
+
+- name: Delete MAC
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    state: absent 
+    regexp: '(?i)[^.]*MAC'
+    backup: yes 
+
+- name: Adding sshd config placeholder
+  lineinfile: >
+    state=present
+    dest=/etc/ssh/sshd_config
+    validate="/usr/sbin/sshd -T -f %s"
+    line="{{ '\n' ~ chipper_start ~ '\n' ~ chipper_end }}"
+    insertbefore="[^.]*override default of no subsystems"
+    backup=yes
+
+- name: Use Only Approved Cipher in Counter Mode
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    state: present
+    regexp: '[^.]*Ciphers'
+    insertafter: "^{{ chipper_start }}"
+    line: 'Ciphers aes128-ctr,aes192-ctr,aes256-ctr'
+    # line: 'Ciphers aes128-ctr,aes192-ctr,aes256-ctr,aes128-cbc,3des-cbc'
+    backup: yes
+
+- name: Disabling Weak MAC Algorithms on a Secure Shell Server
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    state: present
+    regexp: '[^.]*macs'
+    insertbefore: "^{{ chipper_end }}"
+    line: 'macs hmac-sha1,umac-64@openssh.com,hmac-ripemd160'
+    # line: 'macs hmac-sha1,hmac-sha2-256,hmac-sha2-512,hmac-ripemd160,hmac-ripemd160@openssh.com,umac-64@openssh.com,umac-128@openssh.com,hmac-sha1-etm@openssh.com,hmac-sha2-512-etm@openssh.com,hmac-ripemd160-etm@openssh.com,umac-64-etm@openssh.com,umac-128-etm@openssh.com'
+    backup: yes
+
+- name: Set Idle Timeout Interval for User Login
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    state: present
+    regexp: '[^.]*ClientAliveInterval'
+    line: '#ClientAliveInterval 900'
+    backup: yes
+
+- name: Set Idle Timeout Interval for User Login
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    state: present
+    regexp: '[^.]*ClientAliveCountMax'
+    line: 'ClientAliveCountMax 0'
+    backup: yes
+
+- name: Set Permit empty passwords
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    state: present
+    regexp: '[^.]*PermitEmptyPasswords'
+    line: 'PermitEmptyPasswords no'
+    backup: yes
+
+- name: Set Server disconected failed login 120s
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    state: present
+    regexp: '[^.]*LoginGraceTime'
+    line: 'LoginGraceTime 120s'
+    backup: yes
+
+- name: Set SSH log detail INFO
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    state: present
+    regexp: '[^.]*LogLevel'
+    line: 'LogLevel INFO'
+    backup: yes
+
+- name: Set TCPKeepAlive"
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    state: present
+    regexp: '[^.]*TCPKeepAlive'
+    line: 'TCPKeepAlive yes'
+    backup: yes
+
+- name: Set PrintMotd"
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    state: present
+    regexp: '[^.]*PrintMotd'
+    line: 'PrintMotd yes'
+    backup: yes
+
+- name: Set PrintLastLog"
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    state: present
+    regexp: '[^.]*PrintLastLog'
+    line: 'PrintLastLog yes'
+    backup: yes
+
+- name: Set AllowTcpForwarding"
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    state: present
+    regexp: '[^.]*AllowTcpForwarding'
+    line: 'AllowTcpForwarding yes'
+    backup: yes
+
+- name: Set UsePrivilegeSeparation
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    state: present
+    regexp: '[^.]*UsePrivilegeSeparation'
+    line: 'UsePrivilegeSeparation yes'
+    backup: yes
+
+- name: Remove PasswordAuthentication yes
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    state: absent
+    regexp: '[^.]*PasswordAuthentication.*yes'
+    backup: yes
+
+- name: Remove PasswordAuthentication no
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    state: absent
+    regexp: '[^.]*PasswordAuthentication.*no'
+    backup: yes
+
+- name: Set PasswordAuthentication"
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    state: present
+    insertafter: '^# If you just want the PAM account and session checks to run without '
+    regexp: '[^.]*PasswordAuthentication'
+    line: 'PasswordAuthentication yes'
+    backup: yes
+
+- name: show after update /etc/ssh/sshd_config
+  command: "cat /etc/ssh/sshd_config"
+  register: result
+
+- debug: msg="{{ result.stdout_lines }}"  
+
+- name: Reload ssh
+  command: /bin/true
+  notify:
+    - restart ssh
+
